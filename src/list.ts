@@ -1,181 +1,77 @@
 import { ListInterface } from './list.interface.js';
 
-class Node {
-  next?: Node;
-  prev?: Node;
-
-  constructor (public value: string) {
-  }
-}
-
 export class List implements ListInterface {
-  private head?: Node;
+  private array: string[] = [];
 
   length (): number {
-    let length = 0;
-    let currentNode = this.head;
-
-    while (currentNode) {
-      currentNode = currentNode?.next;
-      length++;
-    }
-
-    return length;
+    return this.array.length;
   }
 
   append (item: string): void {
-    const newNode = new Node(item);
-    const last = this.getLast();
-
-    if (last) {
-      last.next = newNode;
-      newNode.prev = last;
-    } else {
-      this.head = newNode;
-    }
+    this.array.push(item);
   }
 
   insert (item: string, index: number): void {
-    const current = this.getNode(index);
-    const prev = current?.prev;
+    this.checkIndex(index);
 
-    const newNode = new Node(item);
-    newNode.next = current;
-    newNode.prev = prev;
-
-    current.prev = newNode;
-    if (prev) {
-      prev.next = newNode;
-    } else {
-      this.head = newNode;
-    }
+    const right = this.array.splice(index);
+    this.array = [...this.array, item, ...right];
   }
 
   delete (index: number): string {
-    const node = this.getNode(index);
-    const value = node.value;
-    this.removeNode(node);
+    this.checkIndex(index);
+    const value = this.array[index];
 
+    this.array.splice(index, 1);
     return value;
   }
 
   deleteAll (item: string): void {
-    let current = this.head;
-
-    while (current) {
-      if (item === current.value)
-        this.removeNode(current);
-
-      current = current.next;
+    for (const [index, elem] of this.array.entries()) {
+      if (item === elem) {
+        this.array.splice(index, 1);
+      }
     }
   }
 
   get (index: number): string {
-    return this.getNode(index).value;
+    this.checkIndex(index);
+    return this.array[index];
   }
 
   clone (): List {
     const newList = new List();
-
-    for (
-      let current = this.head;
-      current;
-      current = current.next
-    ) {
-      newList.append(current.value);
+    for (const item of this.array) {
+      newList.append(item);
     }
 
     return newList;
   }
 
   reverse (): void {
-    const newHead = this.getLast();
-
-    for (
-      let current = newHead;
-      current;
-      current = current.next
-    ) {
-      const prev = current.prev;
-      current.prev = current.next;
-      current.next = prev;
-    }
-
-    this.head = newHead;
+    this.array = this.array.reverse();
   }
 
   findFirst (item: string): number {
-    for (
-      let index = 0, current = this.head;
-      current;
-      current = current.next, index++
-    ) {
-      if (current.value === item) return index;
-    }
-
-    return -1;
+    return this.array.findIndex((element) => element === item);
   }
 
   findLast (item: string): number {
-    for (
-      let index = this.length() - 1, current = this.getLast();
-      current;
-      current = current.prev, index--
-    ) {
-      if (current.value === item) return index;
-    }
-
-    return -1;
+    return this.array.lastIndexOf(item);
   }
 
   clear (): void {
-    this.head = undefined;
+    this.array = [];
   }
 
   extend (items: List): void {
     const clone = items.clone();
-    const last = this.getLast();
-
-    if (last) last.next = clone.head;
-    if (clone.head) clone.head.prev = last;
+    this.array.push(...clone.array);
   }
 
   private checkIndex (index: number): void {
-    if (index < 0 || index >= this.length()) {
+    if (index < 0 || index >= this.array.length) {
       throw new Error('Invalid index');
     }
-  }
-
-  private getNode (index: number): Node {
-    this.checkIndex(index);
-
-    let current = this.head;
-    for (let i = 0; i < index; i++) {
-      current = current?.next;
-    }
-
-    return current as Node;
-  }
-
-  private getLast (): Node | undefined {
-    let last = this.head;
-    while (last?.next) {
-      last = last?.next;
-    }
-
-    return last;
-  }
-
-  private removeNode (node: Node): void {
-    const next = node?.next;
-    const prev = node?.prev;
-
-    if (prev) {
-      prev.next = next;
-    } else {
-      this.head = next;
-    }
-
-    if (next) next.prev = prev;
   }
 }
