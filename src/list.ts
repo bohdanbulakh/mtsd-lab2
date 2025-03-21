@@ -4,11 +4,12 @@ class Node {
   next?: Node;
   prev?: Node;
 
-  constructor (public value: string) {}
+  constructor (public value: string) {
+  }
 }
 
 export class List implements ListInterface {
-  head?: Node;
+  private head?: Node;
 
   length (): number {
     let length = 0;
@@ -28,6 +29,7 @@ export class List implements ListInterface {
 
     if (last) {
       last.next = newNode;
+      newNode.prev = last;
     } else {
       this.head = newNode;
     }
@@ -41,8 +43,12 @@ export class List implements ListInterface {
     newNode.next = current;
     newNode.prev = prev;
 
-    if (current) current.prev = newNode;
-    if (prev) prev.next = current;
+    current.prev = newNode;
+    if (prev) {
+      prev.next = newNode;
+    } else {
+      this.head = newNode;
+    }
   }
 
   delete (index: number): string {
@@ -88,9 +94,9 @@ export class List implements ListInterface {
     for (
       let current = newHead;
       current;
-      current = current.prev
+      current = current.next
     ) {
-      const prev = current.prev
+      const prev = current.prev;
       current.prev = current.next;
       current.next = prev;
     }
@@ -102,7 +108,7 @@ export class List implements ListInterface {
     for (
       let index = 0, current = this.head;
       current;
-      current = current.next
+      current = current.next, index++
     ) {
       if (current.value === item) return index;
     }
@@ -112,9 +118,9 @@ export class List implements ListInterface {
 
   findLast (item: string): number {
     for (
-      let index = 0, current = this.getLast();
+      let index = this.length() - 1, current = this.getLast();
       current;
-      current = current.prev
+      current = current.prev, index--
     ) {
       if (current.value === item) return index;
     }
@@ -130,12 +136,12 @@ export class List implements ListInterface {
     const clone = items.clone();
     const last = this.getLast();
 
-    if (last) last.next = clone.head
-    if (clone.head) clone.head.prev = last
+    if (last) last.next = clone.head;
+    if (clone.head) clone.head.prev = last;
   }
 
   private checkIndex (index: number): void {
-    if (index < 0 || index > this.length()) {
+    if (index < 0 || index >= this.length()) {
       throw new Error('Invalid index');
     }
   }
@@ -164,7 +170,12 @@ export class List implements ListInterface {
     const next = node?.next;
     const prev = node?.prev;
 
-    if (prev) prev.next = next;
+    if (prev) {
+      prev.next = next;
+    } else {
+      this.head = next;
+    }
+
     if (next) next.prev = prev;
   }
 }
